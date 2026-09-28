@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Log Edexcel IAL past-paper marks and see your grade from Pearson's official boundaries, what's left to do, trends and exam countdowns.">
+<title>IAL Paper Tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c5cab'/%3E%3Cpath d='M9 22V10h8a4 4 0 010 8h-8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><h1>IAL Paper Tracker</h1><span class="code">Edexcel IAL · 2019–Jun 2026</span></div>
+    <div class="acct" id="acctWrap" hidden><button class="btn ghost acct-btn" id="acctBtn" aria-haspopup="true" aria-expanded="false"><span class="avatar" id="acctInitial">?</span><span class="acct-email" id="acctEmail"></span></button>
+      <div class="acct-menu" id="acctMenu" hidden role="menu"><div class="acct-who" id="acctWho"></div>
+        <button class="menu-item" id="signOutBtn" role="menuitem">Sign out</button>
+        <a class="menu-item" href="privacy.html" role="menuitem">Privacy</a>
+        <button class="menu-item danger" id="deleteAcctBtn" role="menuitem">Delete my account</button></div></div>
+    <button class="btn primary" id="logBtn" hidden>+ Log a paper</button>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs" hidden>
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-tab="grid" aria-selected="false">Papers done</button>
+    <button class="tab" role="tab" data-tab="trends" aria-selected="false">Trends</button>
+    <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
+    <button class="tab" role="tab" data-tab="units" aria-selected="false">Subjects &amp; units</button>
+  </nav>
+</header>
+<main id="main"></main>
+<div id="modalRoot"></div>
+
+<footer class="foot"><span>Grade boundaries: Pearson Edexcel official IAL grade boundary PDFs. Not affiliated with Pearson.</span> <a href="privacy.html">Privacy</a></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
