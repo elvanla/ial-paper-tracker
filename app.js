@@ -1,13 +1,17 @@
 "use strict";
 /* ================= reference definitions ================= */
 const LIB_SUBJECTS = [
-  {id:"PH", name:"Physics", units:["WPH11","WPH12","WPH13","WPH14","WPH15","WPH16"]},
-  {id:"MA", name:"Mathematics", units:["WMA11","WMA12","WMA13","WMA14","WME01","WST01","WME02","WST02","WDM11"], def:["WMA11","WMA12","WMA13","WMA14","WME01","WST01"]},
-  {id:"FM", name:"Further Mathematics", units:["WFM01","WFM02","WFM03","WME01","WME02","WME03","WST01","WST02","WST03","WDM11"], def:["WFM01","WFM02","WFM03"]},
-  {id:"CH", name:"Chemistry", units:["WCH11","WCH12","WCH13","WCH14","WCH15","WCH16"]},
+  {id:"AC", name:"Accounting", units:["WAC11","WAC12"]},
   {id:"BI", name:"Biology", units:["WBI11","WBI12","WBI13","WBI14","WBI15","WBI16"]},
+  {id:"BS", name:"Business", units:["WBS11","WBS12","WBS13","WBS14"]},
+  {id:"CH", name:"Chemistry", units:["WCH11","WCH12","WCH13","WCH14","WCH15","WCH16"]},
   {id:"EC", name:"Economics", units:["WEC11","WEC12","WEC13","WEC14"]},
-  {id:"BS", name:"Business", units:["WBS11","WBS12","WBS13","WBS14"]}
+  {id:"FM", name:"Further Mathematics", units:["WFM01","WFM02","WFM03","WME01","WME02","WME03","WST01","WST02","WST03","WDM11"], def:["WFM01","WFM02","WFM03"]},
+  {id:"IT", name:"Information Technology", units:["WIT11","WIT12","WIT13","WIT14"]},
+  {id:"LA", name:"Law", units:["YLA1-01","YLA1-02"]},
+  {id:"MA", name:"Mathematics", units:["WMA11","WMA12","WMA13","WMA14","WME01","WST01","WME02","WST02","WDM11"], def:["WMA11","WMA12","WMA13","WMA14","WME01","WST01"]},
+  {id:"PH", name:"Physics", units:["WPH11","WPH12","WPH13","WPH14","WPH15","WPH16"]},
+  {id:"PS", name:"Psychology", units:["WPS01","WPS02","WPS03","WPS04"]}
 ];
 const U = (s,short,name,level,max,ums) => ({s,short,name,level,max,ums});
 const BUILTIN_UNITS = {
@@ -29,7 +33,14 @@ const BUILTIN_UNITS = {
   WEC11:U("EC","U1","Markets in Action","AS",80,100), WEC12:U("EC","U2","Macroeconomic Performance and Policy","AS",80,100),
   WEC13:U("EC","U3","Business Behaviour","A2",80,100), WEC14:U("EC","U4","Developments in the Global Economy","A2",80,100),
   WBS11:U("BS","U1","Marketing and People","AS",80,100), WBS12:U("BS","U2","Managing Business Activities","AS",80,100),
-  WBS13:U("BS","U3","Business Decisions and Strategy","A2",80,100), WBS14:U("BS","U4","Global Business","A2",80,100)
+  WBS13:U("BS","U3","Business Decisions and Strategy","A2",80,100), WBS14:U("BS","U4","Global Business","A2",80,100),
+  WAC11:U("AC","U1","The Accounting System and Costing","AS",200,300), WAC12:U("AC","U2","Corporate and Management Accounting","A2",200,300),
+  WIT11:U("IT","U1","Information Technology Unit 1","AS",80,100), WIT12:U("IT","U2","Information Technology Unit 2","AS",80,100),
+  WIT13:U("IT","U3","Information Technology Unit 3","A2",80,100), WIT14:U("IT","U4","Information Technology Unit 4","A2",80,100),
+  WPS01:U("PS","U1","Social and Cognitive Psychology","AS",64,80), WPS02:U("PS","U2","Biological Psychology, Learning Theories and Development","AS",96,120),
+  WPS03:U("PS","U3","Applications of Psychology","A2",64,80), WPS04:U("PS","U4","Clinical Psychology and Psychological Skills","A2",96,120),
+  "YLA1-01":Object.assign(U("LA","P1","Underlying Principles of Law and the English Legal System","A2",100,0),{law:true,pair:"YLA1-02"}),
+  "YLA1-02":Object.assign(U("LA","P2","The Law in Action","A2",100,0),{law:true,pair:"YLA1-01"})
 };
 const SERIES_LABEL = Object.fromEntries(SERIES);
 const VARIANT_LABEL = {"":"Main paper","A":"Variant paper (e.g. 1A)","R":"Reissued paper (R)"};
@@ -88,7 +99,7 @@ function unitDef(code){
   return null;
 }
 function subjectOf(id){ const l = libSubject(id); return subjects().find(s => s.id === id) || (l ? {id, name:l.name, units:allUnitsOf(id)} : null); }
-function subjColor(id){ return ["PH","MA","FM","CH","BI","EC","BS"].includes(id) ? `var(--sub-${id})` : "var(--sub-X)"; }
+function subjColor(id){ return ["PH","MA","FM","CH","BI","EC","BS","AC","IT","PS","LA"].includes(id) ? `var(--sub-${id})` : "var(--sub-X)"; }
 function setChosen(list){ S.profile.subjects = list; saveProfile(); }
 function officialBounds(series, code, variant){
   const row = B[series]; if (!row) return null;
@@ -108,7 +119,7 @@ function gradeFor(raw, bounds, u){
   return "U";
 }
 function umsFor(raw, bounds, u){
-  if (!bounds) return null;
+  if (!bounds || !u.ums) return null;
   const fr = u.level === "A2" ? UMS_A2 : UMS_AS;
   const pts = [[0,0]];
   for (let i=bounds.length-1;i>=0;i--) pts.push([bounds[i], fr[i]*u.ums]);
@@ -137,8 +148,22 @@ function enrich(a){
   const max = a.max || u.max;
   const b = boundsOf(a);
   const uu = {...u, max};
+  const est = !!u.law && a.series !== "custom";
   return {...a, u:uu, pct: a.raw/max*100, grade: gradeFor(a.raw,b,uu), ums: umsFor(a.raw,b,uu), gap: nextGradeGap(a.raw,b,uu), b,
+    est, combined: est ? lawCombined(u, a.series, a.raw) : null,
     seriesLabel: a.series === "custom" ? (a.seriesLabel || "Other") : (SERIES_LABEL[a.series] || a.series)};
+}
+/* Law is graded on Paper 1 + Paper 2 together. If the other paper from the same series is logged, give the real combined grade. */
+function lawCombined(u, series, raw){
+  if (!u.law || typeof LAWB === "undefined" || !LAWB[series]) return null;
+  const other = S.attempts.filter(x => x.unit === u.pair && x.series === series).sort((x,y)=>(y.created||0)-(x.created||0))[0];
+  if (!other) return null;
+  const total = raw + other.raw;
+  return {total, grade: gradeFor(total, LAWB[series], {level:"A2"}), other: unitDef(u.pair).short};
+}
+function lawNote(e){
+  if (!e.est) return "";
+  return e.combined ? `With ${e.combined.other} from this series: ${e.combined.total}/200, grade ${e.combined.grade}` : "Estimated grade: Law is graded on both papers added together";
 }
 function allEnriched(){ return S.attempts.map(enrich).filter(Boolean).sort((x,y)=> (x.date||"").localeCompare(y.date||"") || (x.created||0)-(y.created||0)); }
 function gClass(g){ if (!g) return "g-none"; return g === "A*" ? "g-As" : "g-"+g; }
@@ -443,7 +468,7 @@ function vOverview(){
     const delta = p3.length ? mean(l3)-mean(p3) : null;
     const best = att.reduce((b,a)=>a.pct>b.pct?a:b, att[0]);
     const gap = last.gap;
-    const gapTxt = !gap ? "No boundaries for this paper" : gap.top && gap.over===0 ? "Top grade, exactly on the boundary" : gap.top ? `Top grade, ${gap.over} mark${gap.over===1?"":"s"} to spare` : `${gap.need} mark${gap.need===1?"":"s"} short of ${gap.grade}`;
+    const gapTxt = last.est ? lawNote(last) : !gap ? "No boundaries for this paper" : gap.top && gap.over===0 ? "Top grade, exactly on the boundary" : gap.top ? `Top grade, ${gap.over} mark${gap.over===1?"":"s"} to spare` : `${gap.need} mark${gap.need===1?"":"s"} short of ${gap.grade}`;
     return `<section class="panel subj">
       <div class="subj-h"><span class="subj-dot" style="background:${subjColor(subj.id)}"></span>
         <div style="margin-right:auto;min-width:0"><span class="eyebrow">${esc(u.short)} · ${esc(subj.name)} <span class="mono" style="letter-spacing:0">${esc(u.code)}</span></span>
@@ -688,7 +713,7 @@ function vUnits(){
       <label class="f" for="backupBox" hidden id="backupWrap">Paste backup text<textarea id="backupBox" rows="4"></textarea><button class="btn primary sm" id="doRestore" style="align-self:flex-start">Restore</button></label>
     </div></section>
     <section class="panel"><div class="panel-h"><h2>Where the boundaries come from</h2></div><div class="panel-b">
-      <p class="caption">Raw-mark boundaries for every Physics, Chemistry, Biology, Mathematics, Further Mathematics, Economics and Business paper are copied from Pearson's official IAL grade boundary PDFs. "Jun 2020" papers were sat in October/November 2020, so they use Pearson's November 2020 boundaries. May/June 2021 grades were teacher-assessed, so that series has no boundaries. To log one of those papers, pick "Other series" and type the boundaries yourself.</p>
+      <p class="caption">Raw-mark boundaries for every Accounting, Biology, Business, Chemistry, Economics, Further Mathematics, Information Technology, Mathematics, Physics and Psychology paper are copied from Pearson's official IAL grade boundary PDFs. Law is graded on Paper 1 + Paper 2 together, so a single Law paper's grade is an estimate (half of each combined boundary); log both papers from the same series to see the real grade. "Jun 2020" papers were sat in October/November 2020, so they use Pearson's November 2020 boundaries. May/June 2021 grades were teacher-assessed, so that series has no boundaries. To log one of those papers, pick "Other series" and type the boundaries yourself.</p>
       <ul class="src-list">${SERIES.map(([id,l])=>`<li><a href="${SRC_BASE+SRC[id]}" target="_blank" rel="noopener">${l}</a></li>`).join("")}</ul></div></section>
   </div>`;
 }
@@ -788,7 +813,9 @@ function updateResult(){
   const bl = b ? `<div class="bounds">${gradeLetters(u).map((g,i)=>`<span class="${M.raw!==""&&gradeFor(raw,b,{...u,max})===g?"hit":""}">${g} ${b[i]}</span>`).join("")}</div>` : `<div class="bounds">No boundaries — percentage only</div>`;
   if (M.raw === "" || isNaN(raw) || !max){ box.innerHTML = `<div class="result"><div class="big g-none">?</div><div class="ln">Type your mark to see your grade.</div><div class="ln">${b?"Boundaries for this paper:":""}</div>${bl}</div>`; return; }
   const uu = {...u, max}; const g = gradeFor(raw,b,uu), ums = umsFor(raw,b,uu), gap = nextGradeGap(raw,b,uu);
-  const gapTxt = !gap ? "" : gap.top ? `Top grade, ${gap.over} mark${gap.over===1?"":"s"} to spare` : `<b>${gap.need}</b> mark${gap.need===1?"":"s"} short of ${gap.grade}`;
+  const isEst = !!u.law && M.series !== "custom";
+  const comb = isEst ? lawCombined(u, M.series, raw) : null;
+  const gapTxt = isEst ? (comb ? `With ${comb.other} from this series: <b>${comb.total}</b>/200, grade <b>${comb.grade}</b>` : "Estimated: Law is graded on Paper 1 + Paper 2 together. Log both papers from this series for the real grade.") : !gap ? "" : gap.top && gap.over===0 ? "Top grade, exactly on the boundary" : gap.top ? `Top grade, ${gap.over} mark${gap.over===1?"":"s"} to spare` : `<b>${gap.need}</b> mark${gap.need===1?"":"s"} short of ${gap.grade}`;
   box.innerHTML = `<div class="result"><div class="big ${gClass(g)}">${g||"–"}</div>
     <div class="ln"><b>${fmtPct(raw/max*100)}</b>${ums!=null?` · <b>${ums}</b>/${u.ums} UMS`:""}</div><div class="ln">${gapTxt}</div>${bl}</div>`;
 }

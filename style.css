@@ -4,7 +4,7 @@
   --grid-line:rgba(28,92,171,.06);
   --good:#0a7a2f; --bad:#c23a3a; --warn:#a86a00;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
-  --sub-PH:#4a3aa7; --sub-MA:#d0561f; --sub-FM:#b0336b; --sub-CH:#1f6fb2; --sub-BI:#2e7d32; --sub-EC:#138a7e; --sub-BS:#a8740a; --sub-X:#52514e;
+  --sub-PH:#4a3aa7; --sub-MA:#d0561f; --sub-FM:#b0336b; --sub-CH:#1f6fb2; --sub-BI:#2e7d32; --sub-EC:#138a7e; --sub-BS:#a8740a; --sub-AC:#7a4f2a; --sub-IT:#3d5a80; --sub-PS:#8e3fa0; --sub-LA:#9b2c2c; --sub-X:#52514e;
   --g-astar:#0d366b; --g-astar-t:#fff; --g-a:#1c5cab; --g-a-t:#fff; --g-b:#3987e5; --g-b-t:#fff;
   --g-c:#86b6ef; --g-c-t:#0d243f; --g-d:#b7d3f6; --g-d-t:#0d243f; --g-e:#dce9fa; --g-e-t:#0d243f;
   --g-u:transparent; --g-u-t:#7a8191;
@@ -21,7 +21,7 @@
     --grid-line:rgba(109,167,236,.05);
     --good:#3cc76a; --bad:#ef6f6f; --warn:#e0a526;
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#1f9a1f;
-    --sub-PH:#9085e9; --sub-MA:#f0804c; --sub-FM:#e76fa3; --sub-CH:#5aa7e8; --sub-BI:#6cc46f; --sub-EC:#3cc0b0; --sub-BS:#e0a526; --sub-X:#b8bdc8;
+    --sub-PH:#9085e9; --sub-MA:#f0804c; --sub-FM:#e76fa3; --sub-CH:#5aa7e8; --sub-BI:#6cc46f; --sub-EC:#3cc0b0; --sub-BS:#e0a526; --sub-AC:#d6a06b; --sub-IT:#86a8d6; --sub-PS:#cf8ae0; --sub-LA:#ec7a7a; --sub-X:#b8bdc8;
     --g-astar:#cde2fb; --g-astar-t:#0d243f; --g-a:#86b6ef; --g-a-t:#0d243f; --g-b:#3987e5; --g-b-t:#fff;
     --g-c:#256abf; --g-c-t:#fff; --g-d:#184f95; --g-d-t:#dce9fa; --g-e:#10325c; --g-e-t:#b7d3f6;
     --g-u-t:#848b99;
@@ -35,7 +35,7 @@
     --grid-line:rgba(109,167,236,.05);
     --good:#3cc76a; --bad:#ef6f6f; --warn:#e0a526;
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#1f9a1f;
-    --sub-PH:#9085e9; --sub-MA:#f0804c; --sub-FM:#e76fa3; --sub-CH:#5aa7e8; --sub-BI:#6cc46f; --sub-EC:#3cc0b0; --sub-BS:#e0a526; --sub-X:#b8bdc8;
+    --sub-PH:#9085e9; --sub-MA:#f0804c; --sub-FM:#e76fa3; --sub-CH:#5aa7e8; --sub-BI:#6cc46f; --sub-EC:#3cc0b0; --sub-BS:#e0a526; --sub-AC:#d6a06b; --sub-IT:#86a8d6; --sub-PS:#cf8ae0; --sub-LA:#ec7a7a; --sub-X:#b8bdc8;
     --g-astar:#cde2fb; --g-astar-t:#0d243f; --g-a:#86b6ef; --g-a-t:#0d243f; --g-b:#3987e5; --g-b-t:#fff;
     --g-c:#256abf; --g-c-t:#fff; --g-d:#184f95; --g-d-t:#dce9fa; --g-e:#10325c; --g-e-t:#b7d3f6;
     --g-u-t:#848b99;
@@ -143,6 +143,11 @@ table.pg{border-collapse:separate;border-spacing:0;width:100%;min-width:560px;fo
 .pc:hover{border-color:var(--accent);border-style:solid;color:var(--accent)}
 .pc.done{border:0}
 .pc .vt{position:absolute;right:2px;bottom:0;font:600 8px var(--f-mono);opacity:.75}
+.pc.g-As{background:var(--g-astar);color:var(--g-astar-t)} .pc.g-A{background:var(--g-a);color:var(--g-a-t)}
+.pc.g-B{background:var(--g-b);color:var(--g-b-t)} .pc.g-C{background:var(--g-c);color:var(--g-c-t)}
+.pc.g-D{background:var(--g-d);color:var(--g-d-t)} .pc.g-E{background:var(--g-e);color:var(--g-e-t)}
+.pc.g-U{background:transparent;color:var(--g-u-t);box-shadow:inset 0 0 0 1px var(--rule-strong)}
+.pc.g-none{background:var(--surface-2);color:var(--ink-2)}
 .pc.na{border:0;cursor:default;color:var(--rule-strong)}
 .progress{display:flex;flex-direction:column;gap:6px;min-width:220px}
 .bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
