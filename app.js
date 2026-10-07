@@ -123,7 +123,16 @@ function umsFor(raw, bounds, u){
   const fr = u.level === "A2" ? UMS_A2 : UMS_AS;
   const pts = [[0,0]];
   for (let i=bounds.length-1;i>=0;i--) pts.push([bounds[i], fr[i]*u.ums]);
-  pts.push([u.max, u.ums]);
+  // Full UMS is reached before full marks (Pearson/AQA rule): AS caps at A + 2×(A−B);
+  // A2 caps the same distance above A* as A* is above A (or at full marks if A is close to it).
+  const hasStar = u.level === "A2" && bounds.length >= 6, iA = hasStar ? 1 : 0;
+  const A = bounds[iA], B = bounds[iA+1];
+  let cap = u.max;
+  if (A != null && B != null && A > B){
+    if (!hasStar) cap = A + 2*(A-B);
+    else if (u.max - A > 2*(A-B)) cap = bounds[0] + (bounds[0]-A);
+  }
+  pts.push([Math.min(u.max, cap), u.ums]);
   const clean = [];
   for (const p of pts){ if (clean.length && p[0] <= clean[clean.length-1][0]) { clean[clean.length-1][1] = Math.max(clean[clean.length-1][1], p[1]); continue; } clean.push(p.slice()); }
   const r = Math.max(0, Math.min(u.max, raw));
