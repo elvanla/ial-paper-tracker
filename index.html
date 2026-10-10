@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -17,6 +18,7 @@
 <header class="top">
   <div class="top-in">
     <div class="brand"><h1>IAL Paper Tracker</h1><span class="code">Edexcel IAL · 2019–Jun 2026</span></div>
+    <button class="btn ghost theme-btn" id="themeBtn" aria-label="Switch theme"></button>
     <div class="acct" id="acctWrap" hidden><button class="btn ghost acct-btn" id="acctBtn" aria-haspopup="true" aria-expanded="false"><span class="avatar" id="acctInitial">?</span><span class="acct-email" id="acctEmail"></span></button>
       <div class="acct-menu" id="acctMenu" hidden role="menu"><div class="acct-who" id="acctWho"></div>
         <button class="menu-item" id="signOutBtn" role="menuitem">Sign out</button>

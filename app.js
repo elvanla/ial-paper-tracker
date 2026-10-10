@@ -413,6 +413,16 @@ document.getElementById("deleteAcctBtn").onclick = () => {
   };
 };
 
+
+/* ---------- theme ---------- */
+function effectiveTheme(){ const t = document.documentElement.dataset.theme; return t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+function paintThemeBtn(){ const b = document.getElementById("themeBtn"); if (!b) return; const dark = effectiveTheme()==="dark";
+  b.innerHTML = dark ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Light</span>'
+                     : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Dark</span>';
+  b.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode"); }
+document.getElementById("themeBtn").onclick = () => { const next = effectiveTheme()==="dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; try{ localStorage.setItem("theme", next); }catch(_){} paintThemeBtn(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", paintThemeBtn);
+paintThemeBtn();
 /* ================= rendering ================= */
 const main = document.getElementById("main");
 function render(){
@@ -448,6 +458,66 @@ function relTime(ts){
   if (!ts) return "";
   const d = Math.floor((Date.now()-ts)/86400000);
   return d<=0 ? "today" : d===1 ? "yesterday" : d<7 ? d+" days ago" : d<60 ? Math.round(d/7)+" wk ago" : Math.round(d/30)+" mo ago";
+}
+
+/* ---------- Daily streak + Today checklist ---------- */
+function ymd(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function addDays(d, n){ const [y,m,dd]=d.split("-").map(Number); return ymd(new Date(y,m-1,dd+n)); }
+function attDay(a){ return a.date || (a.created ? ymd(new Date(a.created)) : null); }
+function streakInfo(all){
+  const days = new Map(); for (const a of all){ const d = attDay(a); if (d) days.set(d, (days.get(d)||0)+1); }
+  const t = today();
+  let start = days.has(t) ? t : addDays(t,-1), cur = 0;
+  while (days.has(start)){ cur++; start = addDays(start,-1); }
+  const sorted = [...days.keys()].sort(); let best = 0, run = 0, prev = null;
+  for (const d of sorted){ run = prev && addDays(prev,1) === d ? run+1 : 1; best = Math.max(best, run); prev = d; }
+  return {days, cur, best, todayDone: days.has(t)};
+}
+function suggestFor(subj, all){
+  if (subj.custom) return null;
+  const units = subj.units.map(c=>({c, e:examOf(c)})).filter(x=>unitDef(x.c));
+  const upcoming = units.filter(x=>x.e && x.e.days>=0).sort((a,b)=>a.e.days-b.e.days);
+  const order = upcoming.concat(units.filter(x=>!upcoming.includes(x)));
+  const done = new Set(all.map(a=>paperKey(a.unit,a.series,a.variant)));
+  for (const {c,e} of order){
+    const s = seriesFor(c).find(s => !done.has(paperKey(c,s,"")));
+    if (s) return {unit:c, series:s, e};
+  }
+  return null;
+}
+function vDaily(subs, all){
+  const st = streakInfo(all), t = today();
+  const rows = subs.filter(s=>s.units.length).map(subj => {
+    const doneToday = all.filter(a=>attDay(a)===t && subj.units.includes(a.unit));
+    if (doneToday.length){
+      const a = doneToday[doneToday.length-1];
+      return {subj, done:true, html:`<span class="td-sub">Done · ${esc(a.u.short)} ${esc(a.seriesLabel)} · <span class="mono">${a.raw}/${a.u.max}</span>${a.grade?` (${a.grade})`:""}</span>`, key:null};
+    }
+    const sg = suggestFor(subj, all);
+    const lbl = sg ? `Next: ${esc(unitDef(sg.unit).short)} · ${esc(SERIES_LABEL[sg.series]||sg.series)}${sg.e&&sg.e.days>=0?` — exam in ${sg.e.days} day${sg.e.days===1?"":"s"}`:""}` : "Every past paper done — redo your weakest";
+    return {subj, done:false, html:`<span class="td-sub">${lbl}</span>`, key: sg ? paperKey(sg.unit, sg.series, "") : null};
+  });
+  const nDone = rows.filter(r=>r.done).length, nAll = rows.length || 1;
+  const C = 2*Math.PI*42, off = C*(1-nDone/nAll);
+  const week = [...Array(7)].map((_,i)=>addDays(t, i-6)).map(d => {
+    const [y,m,dd]=d.split("-").map(Number); const dt = new Date(y,m-1,dd); const n = st.days.get(d)||0;
+    return `<div class="wk${n?" hit":""}${d===t?" now":""}" title="${n} paper${n===1?"":"s"} logged"><span class="wk-d">${dt.toLocaleDateString(undefined,{weekday:"short"})}</span><b class="mono">${dd}</b><span class="wk-n">${"<i></i>".repeat(Math.min(n,3))}</span></div>`;
+  }).join("");
+  const msg = st.cur === 0 ? "Log a past paper today to start a streak."
+    : st.todayDone ? `You're on a <b>${st.cur}-day streak</b>. Nice — keep it going tomorrow.`
+    : `You're on a <b>${st.cur}-day streak</b>. Log a paper today to keep it.`;
+  return `<div class="daily">
+    <section class="panel"><div class="panel-h"><h2>Daily streak</h2><span class="muted" style="font-size:13px">Best: <span class="mono">${st.best}</span> day${st.best===1?"":"s"}</span></div>
+      <div class="streak-b">
+        <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" class="ring-t"/><circle cx="50" cy="50" r="42" class="ring-p" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
+          <div><b class="mono">${st.cur}</b><span>day${st.cur===1?"":"s"}</span></div></div>
+        <div style="min-width:0"><p class="streak-msg">${msg}</p><div class="week">${week}</div></div>
+      </div></section>
+    <section class="panel"><div class="panel-h"><h2>Today</h2><span class="muted" style="font-size:13px"><span class="mono">${nDone}/${rows.length}</span> subjects · ${fmtDay(t)}</span></div>
+      <div class="todo">${rows.map(r=>`<button class="td${r.done?" on":""}" ${r.key?`data-log-paper="${esc(r.key)}"`:`data-log-subject="${esc(r.subj.id)}"`}>
+        <span class="td-dot" style="background:${subjColor(r.subj.id)}"></span><span class="td-t"><b>${esc(r.subj.name)}</b>${r.html}</span>
+        <span class="td-chk" aria-label="${r.done?"Done today":"Not done yet"}"></span></button>`).join("")}</div></section>
+  </div>`;
 }
 function vOverview(){
   const all = allEnriched();
@@ -505,7 +575,7 @@ function vOverview(){
     <div class="panel-b" style="display:flex;flex-direction:column;gap:14px">${shown.map(sj => { const ns = notStarted.filter(p=>p.subj.id===sj.id); if (!ns.length) return "";
       return `<div style="display:flex;flex-direction:column;gap:6px"><span class="eyebrow">${esc(sj.name)}</span><div class="chips">${ns.map(({u})=>`<button class="chip" data-log-unit="${esc(u.code)}"><i style="background:${subjColor(sj.id)}"></i>${esc(u.short)} · ${esc(u.name)}${examOf(u.code)&&examOf(u.code).days>=0?` <b class="mono" style="font-size:11.5px">${examOf(u.code).days}d</b>`:""} <span class="muted">+ Log</span></button>`).join("")}</div></div>`; }).join("")}</div></section>` : "";
   const head = `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h2 style="font-size:20px;margin-right:auto">Your papers <span class="muted" style="font:400 13px var(--f-body)">most recently logged first</span></h2>${seg}<button class="btn sm" data-goto="units">Edit subjects</button></div>`;
-  return head + vCountdown(papers) + (started.length ? `<div class="subjects">${cards}</div>` : `<div class="panel empty">No papers logged yet. Pick one below to log your first mark.</div>`) + rest;
+  return vDaily(subs, all) + head + vCountdown(papers) + (started.length ? `<div class="subjects">${cards}</div>` : `<div class="panel empty">No papers logged yet. Pick one below to log your first mark.</div>`) + rest;
 }
 function sparkline(vals, color){
   const W=300,H=40,pad=3; const n=vals.length;
