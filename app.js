@@ -298,11 +298,11 @@ S.authMode = "signin";
 function vAuth(){
   const m = S.authMode;
   const intro = `<div class="auth-intro"><span class="eyebrow">Edexcel International A Level</span>
-    <h2>Every past paper, every mark, in one place.</h2>
-    <p>Log your IAL past-paper marks and see your grade straight away, worked out from Pearson's official boundaries for that exact paper.</p>
-    <ul><li>Physics, Chemistry, Biology, Maths, Further Maths, Economics and Business, Jan 2019 onwards</li>
-      <li>A grid of every past paper, so you can see what's left to do</li>
-      <li>Trends, exam countdowns, and your own subjects and papers</li>
+    <h2>The free IAL past paper tracker.</h2>
+    <p>Log your Edexcel IAL past-paper marks and get your grade and UMS straight away, worked out from Pearson's official grade boundaries for that exact paper and series.</p>
+    <ul><li>Maths, Further Maths, Physics, Chemistry, Biology, Economics, Business, Accounting, IT, Psychology and Law, Jan 2019 onwards</li>
+      <li>A grid of every past paper (WMA11, WPH11, WEC11…), so you can see what's left to do</li>
+      <li>UMS converter, trends, daily streaks and exam countdowns</li>
       <li>Syncs across your phone, tablet and laptop</li></ul></div>`;
   let card;
   if (m === "signup") card = `<h3>Create your account</h3>
