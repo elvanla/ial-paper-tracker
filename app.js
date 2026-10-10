@@ -230,12 +230,15 @@ const DB = true;
 async function initStore(){
   const bad = !CFG.supabaseUrl || /PASTE/i.test(CFG.supabaseUrl + CFG.supabaseKey);
   if (bad || !window.supabase){ S.mode = "config"; render(); return; }
+  // A password-reset link lands here with ?reset=1 (and/or #type=recovery): show the "new password" form, not the app.
+  if (/[?&]reset=1\b/.test(location.search) || /type=recovery/.test(location.hash)){ S.authMode = "newpass"; S.mode = "auth"; }
   sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey);
   sb.auth.onAuthStateChange((event, session) => {
     if (event === "PASSWORD_RECOVERY"){ S.authMode = "newpass"; S.mode = "auth"; render(); return; }
     setTimeout(() => handleSession(session), 0);
   });
   const { data } = await sb.auth.getSession();
+  if (S.authMode === "newpass"){ S.mode = "auth"; render(); return; }
   await handleSession(data.session);
 }
 async function handleSession(session){
@@ -359,13 +362,14 @@ function bindAuth(){
           else ok.textContent = `Check ${email} for a link to confirm your account, then come back and sign in.`;
         }
       } else if (S.authMode === "reset"){
-        const { error } = await sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + location.pathname});
+        const { error } = await sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + location.pathname + "?reset=1"});
         if (error) throw error;
         ok.textContent = `If ${email} has an account, a reset link is on its way.`;
       } else if (S.authMode === "newpass"){
         const { error } = await sb.auth.updateUser({password: pass});
         if (error) throw error;
         S.authMode = "signin"; toast("Password updated");
+        try { history.replaceState(null, "", location.pathname); } catch(_){}
         const { data } = await sb.auth.getSession(); await handleSession(data.session);
       }
     } catch (e) {
